@@ -40,6 +40,13 @@ class Message implements \ArrayAccess
     public $overlay = false;
 
     /**
+     * Custom attributes to configure.
+     *
+     * @var array
+     */
+    public $attributes = [];
+
+    /**
      * Create a new message instance.
      *
      * @param array $attributes
@@ -60,7 +67,11 @@ class Message implements \ArrayAccess
         $attributes = array_filter($attributes);
 
         foreach ($attributes as $key => $attribute) {
-            $this->$key = $attribute;
+            if (property_exists($this, $key)) {
+                $this->$key = $attribute;
+            } else {
+                $this->attributes[$key] = $attribute;
+            }
         }
 
         return $this;
@@ -88,7 +99,11 @@ class Message implements \ArrayAccess
     #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
-        return $this->$offset;
+        if (property_exists($this, $offset)) {
+            return $this->$offset;
+        }
+
+        return $this->attributes[$offset] ?? null;
     }
 
     /**
@@ -100,7 +115,11 @@ class Message implements \ArrayAccess
     #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
-        $this->$offset = $value;
+        if (property_exists($this, $offset)) {
+            $this->$offset = $value;
+        }
+
+        $this->$attributes[$offset] = $value;
     }
 
     /**
